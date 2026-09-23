@@ -27,8 +27,8 @@ import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.IndexDependencyBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
 import io.quarkus.hibernate.orm.deployment.component.PersistenceUnitDefinitionBuildItem;
-import io.quarkus.hibernate.orm.deployment.integration.HibernateOrmIntegrationRuntimeConfiguredBuildItem;
-import io.quarkus.hibernate.orm.deployment.integration.HibernateOrmIntegrationStaticConfiguredBuildItem;
+import io.quarkus.hibernate.orm.deployment.spi.HibernateOrmIntegrationRuntimeConfiguredBuildItem;
+import io.quarkus.hibernate.orm.deployment.spi.HibernateOrmIntegrationStaticConfiguredBuildItem;
 import io.quarkus.hibernate.orm.deployment.spi.client.HibernateOrmClientDefinedBuildItem;
 import io.quarkus.hibernate.orm.deployment.spi.client.HibernateOrmClientHandlerBuildItem;
 import io.quarkus.hibernate.orm.deployment.spi.client.HibernateOrmClientRequestBuildItem;
@@ -153,8 +153,9 @@ class MongoDbHibernateProcessor {
             String puName = puDefinition.getPersistenceUnitName();
             MongoDbHibernatePersistenceUnitConfig puConfig = mongoDbHibernateConfig.persistenceUnits().get(puName);
             staticConfigured.produce(
-                    new HibernateOrmIntegrationStaticConfiguredBuildItem(FEATURE, puName)
-                            .setInitListener(recorder.createStaticInitListener(puConfig.query().nullSemantics())));
+                    HibernateOrmIntegrationStaticConfiguredBuildItem.builder(FEATURE, puName)
+                            .initListener(recorder.createStaticInitListener(puConfig.query().nullSemantics()))
+                            .build());
         }
     }
 
@@ -170,8 +171,9 @@ class MongoDbHibernateProcessor {
             }
             String clientName = puDefinition.getClientName().get();
             runtimeConfigured.produce(
-                    new HibernateOrmIntegrationRuntimeConfiguredBuildItem(FEATURE, puDefinition.getPersistenceUnitName())
-                            .setInitListener(recorder.createRuntimeInitListener(clientName)));
+                    HibernateOrmIntegrationRuntimeConfiguredBuildItem.builder(FEATURE, puDefinition.getPersistenceUnitName())
+                            .initListener(recorder.createRuntimeInitListener(clientName))
+                            .build());
         }
     }
 
